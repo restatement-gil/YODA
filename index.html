@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html dir="rtl" lang="he">
 <head>
@@ -996,7 +995,7 @@ ${planSummary}
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({model:'claude-opus-4-6', max_tokens:500, messages:[{role:'user',content}]})
+      body: JSON.stringify({model:'claude-opus-4-6', max_tokens:1000, messages:[{role:'user',content}]})
     });
     if (!resp.ok) throw new Error(`שגיאת שרת ${resp.status}`);
     const data = await resp.json();
@@ -1058,7 +1057,7 @@ ${planSummary}
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({model:'claude-opus-4-6', max_tokens:500, messages:[{role:'user',content}]})
+      body: JSON.stringify({model:'claude-opus-4-6', max_tokens:1000, messages:[{role:'user',content}]})
     });
     if (!resp.ok) throw new Error(`שגיאת שרת ${resp.status}`);
     const data = await resp.json();
@@ -1102,13 +1101,16 @@ function saveQueueItem(item) {
     total: item.data?.total || 0,
     currency: item.data?.currency || 'ILS',
     details: item.data?.details || '',
+    suggestedSection: item.data?.suggestedSection || '',
+    suggestedAccount: item.data?.suggestedAccount || '',
     status: item.status==='manual' ? 'דרושה בדיקה ידנית' : 'ממתין לאישור',
     section:'', account:'', vatCalc:0, expense:0
   };
   INVOICES[currentUser].unshift(inv);
-  // Store image for classify modal (images only, not PDFs)
-  if (item._base64 && item.file && item.file.type.startsWith('image/')) {
-    invoiceImages[inv.id] = `data:${item.file.type};base64,${item._base64}`;
+  // Store image for classify modal
+  if (item._base64 && item.file) {
+    const mime = item.file.type || 'image/jpeg';
+    invoiceImages[inv.id] = `data:${mime};base64,${item._base64}`;
   }
 }
 
