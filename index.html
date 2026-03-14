@@ -1,1 +1,1671 @@
+גלישת שורות
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YODA — מערכת חשבוניות</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+--bg: #07080d;
+--bg2: #0d0f18;
+--bg3: #12141f;
+--bg4: #181a27;
+--border: #1e2030;
+--border2: #252840;
+--gold: #c9a84c;
+--gold2: #e8d5a3;
+--gold-dim: rgba(201,168,76,0.15);
+--text: #e8eaf0;
+--text2: #8890a8;
+--text3: #454d6a;
+--green: #4caf50;
+--green-dim: rgba(76,175,80,0.15);
+--orange: #f59e0b;
+--orange-dim: rgba(245,158,11,0.15);
+--red: #ef5350;
+--red-dim: rgba(239,83,80,0.12);
+--blue: #60a5fa;
+--blue-dim: rgba(96,165,250,0.12);
+--radius: 12px;
+--shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); direction: rtl; min-height: 100vh; }
+.hidden { display: none !important; }
+button { cursor: pointer; border: none; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
 
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ===== LOGIN ===== */
+#login-screen {
+display: flex; align-items: center; justify-content: center;
+min-height: 100vh;
+background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.08) 0%, transparent 60%);
+}
+.login-box { width: 100%; max-width: 420px; padding: 0 24px; }
+.login-logo { text-align: center; margin-bottom: 48px; }
+.login-logo-icon {
+width: 72px; height: 72px; border-radius: 20px;
+background: linear-gradient(135deg, #c9a84c, #e8d5a3);
+margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+font-size: 32px; box-shadow: 0 0 40px rgba(201,168,76,0.25), 0 0 80px rgba(201,168,76,0.1);
+}
+.login-logo h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+.login-logo p { color: var(--text3); font-size: 13px; margin-top: 6px; font-weight: 400; }
+.login-card {
+background: var(--bg2); border: 1px solid var(--border);
+border-radius: 20px; padding: 32px; box-shadow: var(--shadow);
+}
+.demo-hint {
+background: var(--bg3); border: 1px solid var(--border2);
+border-radius: 10px; padding: 14px 16px; margin-bottom: 24px;
+font-size: 12px; color: var(--text3); line-height: 1.8;
+}
+.demo-hint strong { color: var(--text2); display: block; margin-bottom: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group { display: flex; flex-direction: column; gap: 12px; }
+.inp {
+background: var(--bg3); border: 1px solid var(--border2);
+border-radius: 10px; padding: 14px 16px; color: var(--text);
+font-size: 15px; width: 100%; outline: none; transition: border-color 0.2s;
+}
+.inp:focus { border-color: var(--gold); }
+.inp::placeholder { color: var(--text3); }
+.btn-primary {
+background: linear-gradient(135deg, #c9a84c, #e8d5a3);
+color: #07080d; padding: 14px; border-radius: 10px;
+font-size: 15px; font-weight: 700; width: 100%; margin-top: 4px;
+transition: opacity 0.2s, transform 0.1s;
+}
+.btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+.error-msg { color: var(--red); font-size: 13px; text-align: center; }
+
+/* ===== LAYOUT ===== */
+#app { display: flex; flex-direction: column; min-height: 100vh; }
+.topbar {
+border-bottom: 1px solid var(--border); padding: 0 28px;
+display: flex; justify-content: space-between; align-items: center;
+height: 60px; background: var(--bg2); position: sticky; top: 0; z-index: 100;
+}
+.topbar-logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 17px; letter-spacing: -0.3px; }
+.topbar-logo-icon {
+width: 36px; height: 36px; border-radius: 9px;
+background: linear-gradient(135deg, #c9a84c, #e8d5a3);
+display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-user { color: var(--text2); font-size: 13px; }
+.topbar-client-badge {
+background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3);
+color: var(--gold); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.btn-sm {
+background: var(--bg3); border: 1px solid var(--border2);
+color: var(--text2); padding: 7px 14px; border-radius: 8px;
+font-size: 13px; transition: all 0.2s;
+}
+.btn-sm:hover { border-color: var(--gold); color: var(--gold); }
+.btn-sm-gold {
+background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3);
+color: var(--gold); padding: 7px 14px; border-radius: 8px; font-size: 13px;
+}
+
+/* ===== TABS ===== */
+.nav-tabs {
+display: flex; gap: 2px; border-bottom: 1px solid var(--border);
+padding: 0 28px; background: var(--bg2);
+}
+.nav-tab {
+padding: 14px 18px; font-size: 14px; color: var(--text3);
+cursor: pointer; border-bottom: 2px solid transparent;
+background: none; border-top: none; border-left: none; border-right: none;
+transition: all 0.2s; font-weight: 500;
+}
+.nav-tab:hover { color: var(--text2); }
+.nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); font-weight: 600; }
+
+/* ===== CONTENT ===== */
+.content { padding: 28px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+/* ===== STATS ===== */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.stats-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.stat-card {
+background: var(--bg2); border: 1px solid var(--border);
+border-radius: var(--radius); padding: 20px 22px;
+border-top: 2px solid var(--gold); position: relative; overflow: hidden;
+}
+.stat-card::before {
+content: ''; position: absolute; top: 0; left: 0; right: 0; height: 60px;
+background: linear-gradient(180deg, var(--gold-dim) 0%, transparent 100%);
+}
+.stat-card .s-icon { font-size: 22px; margin-bottom: 10px; }
+.stat-card .s-label { color: var(--text3); font-size: 11px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+.stat-card .s-val { font-size: 24px; font-weight: 700; }
+.stat-card.blue { border-top-color: var(--blue); }
+.stat-card.blue::before { background: linear-gradient(180deg, var(--blue-dim) 0%, transparent 100%); }
+.stat-card.green { border-top-color: var(--green); }
+.stat-card.green::before { background: linear-gradient(180deg, var(--green-dim) 0%, transparent 100%); }
+.stat-card.orange { border-top-color: var(--orange); }
+.stat-card.orange::before { background: linear-gradient(180deg, var(--orange-dim) 0%, transparent 100%); }
+
+/* ===== UPLOAD ZONE ===== */
+.upload-zone {
+background: var(--bg2); border: 2px dashed var(--border2);
+border-radius: 16px; padding: 40px; text-align: center;
+margin-bottom: 24px; transition: all 0.2s; cursor: pointer;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+border-color: var(--gold); background: var(--gold-dim);
+}
+.upload-zone .uz-icon { font-size: 48px; margin-bottom: 14px; }
+.upload-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.upload-zone p { color: var(--text3); font-size: 13px; margin-bottom: 20px; }
+.upload-btns { display: flex; gap: 10px; justify-content: center; }
+
+/* ===== TABLE ===== */
+.table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.table-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.table-head h3 { font-size: 14px; font-weight: 600; }
+.t-row {
+display: grid; padding: 14px 20px; border-bottom: 1px solid var(--border);
+align-items: center; font-size: 13px; transition: background 0.15s;
+}
+.t-row:last-child { border-bottom: none; }
+.t-row:hover { background: var(--bg3); }
+.t-head-row { color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; background: var(--bg3); }
+.t-head-row:hover { background: var(--bg3); }
+.empty-state { padding: 48px; text-align: center; color: var(--text3); }
+.empty-state .e-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+/* ===== BADGES ===== */
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.badge-pending { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(245,158,11,0.3); }
+.badge-approved { background: var(--green-dim); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
+.badge-classified { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+
+/* ===== FILTERS ===== */
+.filters { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+.filter-btn { background: var(--bg3); border: 1px solid var(--border2); color: var(--text3); padding: 8px 14px; border-radius: 8px; font-size: 13px; transition: all 0.2s; }
+.filter-btn.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.4); color: var(--gold); font-weight: 600; }
+.search-inp { flex: 1; min-width: 200px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 9px 14px; color: var(--text); font-size: 13px; outline: none; }
+.search-inp:focus { border-color: var(--gold); }
+.search-inp::placeholder { color: var(--text3); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+display: flex; align-items: center; justify-content: center;
+z-index: 1000; padding: 20px; backdrop-filter: blur(4px);
+}
+.modal {
+background: var(--bg2); border: 1px solid var(--border2);
+border-radius: 20px; padding: 32px; width: 100%; max-width: 560px;
+max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.modal-wide { max-width: 900px; }
+.modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.modal-grid-1 { grid-template-columns: 1fr; }
+.form-field { display: flex; flex-direction: column; gap: 6px; }
+.form-field label { font-size: 12px; color: var(--text2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-field .inp { padding: 11px 14px; font-size: 14px; }
+.form-field select.inp { cursor: pointer; }
+.modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+.btn-cancel { background: var(--bg3); border: 1px solid var(--border2); color: var(--text2); padding: 10px 20px; border-radius: 9px; font-size: 14px; }
+.btn-save { background: linear-gradient(135deg, #c9a84c, #e8d5a3); color: #07080d; padding: 10px 24px; border-radius: 9px; font-size: 14px; font-weight: 700; }
+
+/* ===== PROCESSING ===== */
+.processing-card {
+background: var(--bg2); border: 1px solid var(--border2);
+border-radius: 16px; padding: 32px; text-align: center; margin-bottom: 24px;
+}
+.spinner {
+width: 44px; height: 44px; border: 3px solid var(--border2);
+border-top-color: var(--gold); border-radius: 50%;
+animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.processing-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.processing-card p { color: var(--text3); font-size: 13px; }
+
+/* ===== REPORTS ===== */
+.reports-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.report-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+.report-card h3 { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.4px; }
+.report-card canvas { max-height: 220px; }
+.report-full { grid-column: 1 / -1; }
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th { color: var(--text3); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: right; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+.summary-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); color: var(--text2); }
+.summary-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--text); border-top: 2px solid var(--border2); }
+.summary-table tr:hover td { background: var(--bg3); }
+.amount-col { color: var(--gold) !important; font-weight: 600 !important; }
+
+/* ===== DATE FILTER ===== */
+.date-filter { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+.date-filter label { color: var(--text3); font-size: 13px; }
+.date-filter .inp { width: auto; padding: 8px 12px; font-size: 13px; }
+.period-btns { display: flex; gap: 6px; }
+.period-btn { background: var(--bg3); border: 1px solid var(--border2); color: var(--text3); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 500; }
+.period-btn.active { background: var(--gold-dim); border-color: rgba(201,168,76,0.4); color: var(--gold); }
+
+/* ===== PLAN MANAGEMENT ===== */
+.plan-section { margin-bottom: 24px; }
+.plan-section-header {
+background: var(--bg3); border: 1px solid var(--border2);
+border-radius: 10px 10px 0 0; padding: 14px 20px;
+display: flex; justify-content: space-between; align-items: center;
+}
+.plan-section-header h4 { font-size: 14px; font-weight: 600; color: var(--gold); }
+.plan-accounts { background: var(--bg2); border: 1px solid var(--border2); border-top: none; border-radius: 0 0 10px 10px; }
+.plan-account-row {
+display: grid; grid-template-columns: 2fr 1fr 1fr auto;
+padding: 12px 20px; border-bottom: 1px solid var(--border);
+align-items: center; font-size: 13px;
+}
+.plan-account-row:last-child { border-bottom: none; }
+.vat-pct { font-weight: 700; }
+.vat-0 { color: var(--red); }
+.vat-25 { color: var(--orange); }
+.vat-66 { color: var(--gold); }
+.vat-100 { color: var(--green); }
+
+/* ===== CLIENT SELECT ===== */
+.client-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+.client-card {
+background: var(--bg2); border: 1px solid var(--border);
+border-radius: 16px; padding: 24px; cursor: pointer;
+transition: all 0.2s; text-align: center;
+}
+.client-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.1); }
+.client-avatar {
+width: 56px; height: 56px; border-radius: 50%;
+background: linear-gradient(135deg, var(--bg3), var(--bg4));
+border: 2px solid var(--border2); margin: 0 auto 14px;
+display: flex; align-items: center; justify-content: center; font-size: 24px;
+}
+.client-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.client-card p { color: var(--text3); font-size: 12px; }
+
+/* ===== API KEY SETTING ===== */
+.api-key-bar {
+background: var(--bg3); border: 1px solid var(--border2);
+border-radius: 10px; padding: 14px 18px; margin-bottom: 20px;
+display: flex; align-items: center; gap: 12px; font-size: 13px;
+}
+.api-key-bar .ak-label { color: var(--text3); min-width: 100px; }
+.api-key-bar .ak-status { font-weight: 600; }
+.ak-set { color: var(--green); }
+.ak-missing { color: var(--red); }
+
+/* ===== INVOICE PREVIEW ===== */
+.preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.preview-image { background: var(--bg3); border: 1px solid var(--border2); border-radius: 12px; overflow: hidden; }
+.preview-image img { width: 100%; max-height: 400px; object-fit: contain; padding: 12px; }
+.preview-form { display: flex; flex-direction: column; gap: 12px; }
+.field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ===== SECTION HEADER ===== */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.section-header h2 { font-size: 18px; font-weight: 700; }
+.section-header p { color: var(--text3); font-size: 13px; margin-top: 3px; }
+
+/* ===== APPROVE BUTTON ===== */
+.btn-approve { background: var(--green-dim); border: 1px solid rgba(76,175,80,0.3); color: var(--green); padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.btn-classify { background: var(--blue-dim); border: 1px solid rgba(96,165,250,0.2); color: var(--blue); padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+.btn-danger { background: var(--red-dim); border: 1px solid rgba(239,83,80,0.3); color: var(--red); padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+/* ===== DIVIDER ===== */
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+/* ===== ALERT ===== */
+.alert { border-radius: 10px; padding: 14px 16px; font-size: 13px; margin-bottom: 16px; }
+.alert-warn { background: var(--orange-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--orange); }
+.alert-info { background: var(--blue-dim); border: 1px solid rgba(96,165,250,0.2); color: var(--blue); }
+
+/* ===== QUEUE ===== */
+.queue-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.queue-item {
+background: var(--bg2); border: 1px solid var(--border);
+border-radius: 12px; padding: 14px 18px;
+display: flex; align-items: center; gap: 14px;
+}
+.qi-icon { font-size: 22px; flex-shrink: 0; }
+.qi-info { flex: 1; min-width: 0; }
+.qi-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qi-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.qi-status { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+.qi-spinner { width: 18px; height: 18px; border: 2px solid var(--border2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+.qi-retry { background: var(--orange-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--orange); padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+
+/* ===== TOTALS ROW ===== */
+.totals-row { background: var(--bg3); border-top: 2px solid var(--border2); padding: 14px 20px; display: flex; gap: 32px; font-size: 13px; }
+.totals-row .tot { display: flex; flex-direction: column; gap: 3px; }
+.totals-row .tot-label { color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; }
+.totals-row .tot-val { font-weight: 700; font-size: 15px; color: var(--gold); }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+<div class="login-box">
+<div class="login-logo">
+<div class="login-logo-icon">📋</div>
+<h1>YODA</h1>
+<p>מערכת ניהול חשבוניות חכמה</p>
+</div>
+<div class="login-card">
+<div class="demo-hint">
+<strong>משתמשי הדגמה</strong>
+👤 לקוחות: איל / פלג / עמית — סיסמה: 1234<br>
+👷 מנהלי חשבונות: שירה / ולנטינה / אולגה / יערה / מילה — סיסמה: 1234
+</div>
+<div class="form-group">
+<input class="inp" id="login-email" placeholder="שם משתמש">
+<input class="inp" id="login-pass" type="password" placeholder="סיסמה">
+<div class="error-msg hidden" id="login-err">שם משתמש או סיסמה שגויים</div>
+<button class="btn-primary" onclick="doLogin()">כניסה למערכת</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ===== CLIENT APP ===== -->
+<div id="client-app" class="hidden">
+<div id="app">
+<div class="topbar">
+<div class="topbar-logo">
+<div class="topbar-logo-icon">📋</div>
+YODA
+</div>
+<div class="topbar-right">
+<span class="topbar-user" id="client-username"></span>
+<button class="btn-sm" onclick="doLogout()">יציאה</button>
+</div>
+</div>
+<div class="nav-tabs">
+<button class="nav-tab active" id="ctab-invoices" onclick="cSwitchTab('invoices')">החשבוניות שלי</button>
+<button class="nav-tab" id="ctab-upload" onclick="cSwitchTab('upload')">העלאת חשבונית</button>
+</div>
+<div class="content">
+<!-- My Invoices -->
+<div id="cpanel-invoices">
+<div class="section-header">
+<div><h2>החשבוניות שלי</h2><p>כל החשבוניות שהועלו לחשבונך</p></div>
+</div>
+<div class="stats-grid stats-grid-3" id="client-stats"></div>
+<div class="table-card">
+<div class="table-head"><h3>רשימת חשבוניות</h3></div>
+<div class="t-row t-head-row" style="grid-template-columns:2fr 1fr 1.2fr 1.2fr 1fr 1fr">
+<div>ספק</div><div>תאריך</div><div>סכום כולל מע"מ</div><div>מע"מ לקיזוז</div><div>חשבון</div><div>סטטוס</div>
+</div>
+<div id="client-invoices-list"></div>
+</div>
+</div>
+<!-- Upload -->
+<div id="cpanel-upload" class="hidden">
+<div class="section-header">
+<div><h2>העלאת חשבוניות</h2><p>ניתן להעלות מספר חשבוניות בבת אחת</p></div>
+</div>
+<div class="upload-zone" id="upload-zone" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+<div class="uz-icon">📂</div>
+<h3>גרור חשבוניות לכאן</h3>
+<p>ניתן לגרור מספר קבצים בו זמנית — תמונה (JPG, PNG) או PDF</p>
+<div class="upload-btns">
+<button class="btn-primary" style="width:auto;padding:11px 22px;font-size:14px" onclick="document.getElementById('file-input-multi').click()">📁 בחר קבצים מהמחשב</button>
+<button class="btn-sm" style="padding:11px 22px;font-size:14px" onclick="document.getElementById('file-input-camera').click()">📷 צלם חשבונית</button>
+</div>
+<input type="file" id="file-input-multi" accept="image/*,.pdf" multiple class="hidden" onchange="handleMultiSelect(event)">
+<input type="file" id="file-input-camera" accept="image/*" capture="environment" class="hidden" onchange="handleMultiSelect(event)">
+</div>
+<div id="queue-area"></div>
+<div id="done-banner" class="hidden" style="background:var(--green-dim);border:1px solid rgba(76,175,80,0.3);border-radius:12px;padding:20px 24px;text-align:center;margin-top:16px">
+<div style="font-size:28px;margin-bottom:8px">✅</div>
+<div style="font-size:16px;font-weight:700;color:var(--green)">הקבצים התקבלו למערכת YODA</div>
+<div style="color:var(--text2);font-size:13px;margin-top:4px">הצוות ימשיך בטיפול</div>
+<button class="btn-sm" style="margin-top:14px" onclick="resetUpload()">העלאה נוספת</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ===== ACCOUNTANT APP ===== -->
+<div id="acc-app" class="hidden">
+<div id="acc-inner">
+<!-- Client Selection -->
+<div id="acc-client-select">
+<div class="topbar">
+<div class="topbar-logo"><div class="topbar-logo-icon">📋</div>YODA</div>
+<div class="topbar-right">
+<span class="topbar-user" id="acc-username"></span>
+<button class="btn-sm" onclick="doLogout()">יציאה</button>
+</div>
+</div>
+<div class="content">
+<div class="section-header" style="margin-top:24px">
+<div><h2>בחר לקוח</h2><p>בחר את הלקוח שברצונך לטפל בו</p></div>
+</div>
+<div class="client-select-grid" id="acc-clients-grid"></div>
+</div>
+</div>
+<!-- Main Accountant UI -->
+<div id="acc-main" class="hidden">
+<div class="topbar">
+<div class="topbar-logo"><div class="topbar-logo-icon">📋</div>YODA</div>
+<div class="topbar-right">
+<span class="topbar-client-badge" id="acc-current-client-badge"></span>
+<span class="topbar-user" id="acc-username2"></span>
+<button class="btn-sm" onclick="backToClientSelect()">החלף לקוח</button>
+<button class="btn-sm" onclick="doLogout()">יציאה</button>
+</div>
+</div>
+<div class="nav-tabs">
+<button class="nav-tab active" id="atab-invoices" onclick="aSwitchTab('invoices')">חשבוניות</button>
+<button class="nav-tab" id="atab-vat" onclick="aSwitchTab('vat')">דוח מע"מ תשומות</button>
+<button class="nav-tab" id="atab-pl" onclick="aSwitchTab('pl')">דוח רו"ה</button>
+<button class="nav-tab" id="atab-ledger" onclick="aSwitchTab('ledger')">כרטסת מפורטת</button>
+<button class="nav-tab" id="atab-plan" onclick="aSwitchTab('plan')">עדכון סעיף</button>
+<button class="nav-tab" id="atab-settings" onclick="aSwitchTab('settings')">⚙️ הגדרות</button>
+</div>
+<div class="content">
+
+<!-- INVOICES TAB -->
+<div id="apanel-invoices">
+<div class="section-header">
+<div><h2>חשבוניות</h2><p id="acc-client-subtitle"></p></div>
+</div>
+<div class="stats-grid" id="acc-stats"></div>
+<div class="filters">
+<button class="filter-btn active" id="af-all" onclick="aSetFilter('הכל')">הכל</button>
+<button class="filter-btn" id="af-pending" onclick="aSetFilter('ממתין לאישור')">ממתין לאישור</button>
+<button class="filter-btn" id="af-approved" onclick="aSetFilter('מאושר')">מאושר</button>
+<input class="search-inp" id="acc-search" placeholder="חיפוש לפי ספק..." oninput="renderAccInvoices()">
+</div>
+<div class="table-card">
+<div class="table-head"><h3>רשימת חשבוניות</h3></div>
+<div class="t-row t-head-row" style="grid-template-columns:1.8fr 1fr 1fr 1fr 1fr 1.2fr 1.4fr">
+<div>ספק</div><div>תאריך</div><div>סכום כולל</div><div>מע"מ לקיזוז</div><div>הוצאה למס</div><div>חשבון</div><div>פעולות</div>
+</div>
+<div id="acc-invoices-list"></div>
+</div>
+</div>
+
+<!-- VAT REPORT -->
+<div id="apanel-vat" class="hidden">
+<div class="section-header">
+<div><h2>דוח מע"מ תשומות</h2><p>סיכום מע"מ לקיזוז לתקופה</p></div>
+<div style="display:flex;gap:8px">
+<button class="btn-sm-gold" onclick="exportVatExcel()">📊 יצוא Excel</button>
+<button class="btn-sm-gold" onclick="exportVatPDF()">📄 יצוא PDF</button>
+</div>
+</div>
+<div class="date-filter" id="vat-period-bar"></div>
+<div id="vat-report-content"></div>
+</div>
+
+<!-- P&L REPORT -->
+<div id="apanel-pl" class="hidden">
+<div class="section-header">
+<div><h2>דוח רווח והפסד</h2><p>הוצאות לפי סעיף לדוח</p></div>
+<div style="display:flex;gap:8px">
+<button class="btn-sm-gold" onclick="exportPLExcel()">📊 יצוא Excel</button>
+<button class="btn-sm-gold" onclick="exportPLPDF()">📄 יצוא PDF</button>
+</div>
+</div>
+<div class="date-filter" id="pl-period-bar"></div>
+<div id="pl-report-content"></div>
+</div>
+
+<!-- LEDGER -->
+<div id="apanel-ledger" class="hidden">
+<div class="section-header">
+<div><h2>כרטסת מפורטת</h2><p>כל החשבוניות עם נתוני מע"מ והוצאות</p></div>
+<div style="display:flex;gap:8px">
+<button class="btn-sm-gold" onclick="exportLedgerExcel()">📊 יצוא Excel</button>
+<button class="btn-sm-gold" onclick="exportLedgerPDF()">📄 יצוא PDF</button>
+</div>
+</div>
+<div class="date-filter" id="ledger-period-bar"></div>
+<div id="ledger-content"></div>
+</div>
+
+<!-- PLAN MANAGEMENT -->
+<div id="apanel-plan" class="hidden">
+<div class="section-header">
+<div><h2>עדכון סעיף</h2><p>ניהול סעיפים וחשבונות</p></div>
+<button class="btn-sm-gold" onclick="openAddSection()">+ הוסף סעיף</button>
+</div>
+<div class="alert alert-warn">⚠️ שינויים בפלן החשבונות ישפיעו על סיווג חשבוניות עתידיות. בצע שינויים בזהירות.</div>
+<div id="plan-content"></div>
+</div>
+
+<!-- SETTINGS -->
+<div id="apanel-settings" class="hidden">
+<div class="section-header">
+<div><h2>הגדרות מערכת</h2><p>ניהול טכני — גישה למנהל בלבד</p></div>
+</div>
+<div class="table-card" style="max-width:600px">
+<div class="table-head"><h3>🔑 מפתח Anthropic API</h3></div>
+<div style="padding:24px;display:flex;flex-direction:column;gap:16px">
+<div style="font-size:13px;color:var(--text2)">המפתח משמש לפענוח אוטומטי של חשבוניות. ניתן לקבלו מ-console.anthropic.com</div>
+<div class="api-key-bar" style="margin:0">
+<span class="ak-label">סטטוס:</span>
+<span class="ak-status" id="acc-ak-status-text">בודק...</span>
+</div>
+<div class="form-field">
+<label>מפתח API חדש</label>
+<input class="inp" id="acc-api-key-input" type="password" placeholder="sk-ant-...">
+</div>
+<div style="display:flex;gap:10px">
+<button class="btn-save" onclick="accSaveApiKey()">שמור מפתח</button>
+<button class="btn-danger" onclick="accClearApiKey()">מחק מפתח</button>
+</div>
+</div>
+</div>
+</div>
+<div id="classify-modal" class="modal-overlay hidden">
+<div class="modal modal-wide">
+<h2>📂 סיווג חשבונית</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">
+<!-- Col 1 (right in RTL): form + calculations -->
+<div style="display:flex;flex-direction:column;gap:14px">
+<!-- Invoice summary -->
+<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px">
+<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;font-weight:600;margin-bottom:4px">נתוני החשבונית</div>
+<div style="display:flex;justify-content:space-between;font-size:13px">
+<span style="color:var(--text3)">ספק</span>
+<span id="cm-supplier-disp" style="font-weight:600"></span>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:13px">
+<span style="color:var(--text3)">תאריך</span>
+<span id="cm-date-disp" style="color:var(--text2)"></span>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:13px">
+<span style="color:var(--text3)">סכום כולל מע"מ</span>
+<span id="cm-total-disp" style="color:var(--gold);font-weight:700"></span>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:13px">
+<span style="color:var(--text3)">מע"מ בחשבונית</span>
+<span id="cm-vat-disp" style="color:var(--text2)"></span>
+</div>
+<div style="display:flex;justify-content:space-between;font-size:13px">
+<span style="color:var(--text3)">פרטים</span>
+<span id="cm-details-disp" style="color:var(--text2);font-size:12px;text-align:left;max-width:55%"></span>
+</div>
+</div>
+<!-- Classification selectors -->
+<div class="form-field">
+<label>סעיף לדוח</label>
+<select class="inp" id="cm-section" onchange="onSectionChange()">
+<option value="">— בחר סעיף —</option>
+</select>
+</div>
+<div class="form-field">
+<label>חשבון</label>
+<select class="inp" id="cm-account">
+<option value="">— בחר חשבון —</option>
+</select>
+</div>
+<!-- Calculated values -->
+<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;font-weight:600">חישוב אוטומטי</div>
+<div class="form-field">
+<label>% מע"מ לקיזוז</label>
+<input class="inp" id="cm-vat-pct" readonly style="color:var(--gold)">
+</div>
+<div class="form-field">
+<label>מע"מ לקיזוז (₪)</label>
+<input class="inp" id="cm-vat-calc" readonly style="color:var(--green);font-weight:700">
+</div>
+<div class="form-field">
+<label>הוצאה לצרכי מס (₪)</label>
+<input class="inp" id="cm-expense" readonly style="color:var(--gold);font-weight:700">
+</div>
+</div>
+</div>
+<!-- Col 2 (left in RTL): invoice image -->
+<div>
+<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.4px;font-weight:600;margin-bottom:8px">תמונת החשבונית</div>
+<div id="cm-image-wrap" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;min-height:420px;display:flex;align-items:center;justify-content:center;overflow:hidden">
+<span style="color:var(--text3);font-size:13px">אין תמונה זמינה</span>
+</div>
+</div>
+</div>
+<div class="modal-actions" style="margin-top:20px">
+<button class="btn-cancel" onclick="closeClassifyModal()">ביטול</button>
+<button class="btn-save" onclick="saveClassification()">✓ אשר וסווג</button>
+</div>
+</div>
+</div>
+
+<!-- ===== EDIT INVOICE MODAL ===== -->
+<div id="edit-modal" class="modal-overlay hidden">
+<div class="modal">
+<h2>✏️ עריכת נתוני חשבונית</h2>
+<input type="hidden" id="em-id">
+<div class="modal-grid">
+<div class="form-field">
+<label>שם ספק</label>
+<input class="inp" id="em-supplier">
+</div>
+<div class="form-field">
+<label>מספר עוסק</label>
+<input class="inp" id="em-business-id">
+</div>
+<div class="form-field">
+<label>תאריך</label>
+<input class="inp" type="date" id="em-date">
+</div>
+<div class="form-field">
+<label>סוג עוסק</label>
+<select class="inp" id="em-business-type">
+<option value="מורשה">עוסק מורשה</option>
+<option value="פטור">עוסק פטור</option>
+</select>
+</div>
+<div class="form-field">
+<label>סכום לפני מע"מ (₪)</label>
+<input class="inp" type="number" id="em-amount" oninput="calcEditVat()">
+</div>
+<div class="form-field">
+<label>מע"מ (₪)</label>
+<input class="inp" type="number" id="em-vat" oninput="calcEditTotal()">
+</div>
+<div class="form-field">
+<label>סכום כולל מע"מ (₪)</label>
+<input class="inp" type="number" id="em-total">
+</div>
+<div class="form-field">
+<label>מטבע</label>
+<select class="inp" id="em-currency">
+<option value="ILS">₪ שקל</option>
+<option value="USD">$ דולר</option>
+<option value="EUR">€ אירו</option>
+</select>
+</div>
+</div>
+<div class="form-field" style="margin-top:14px">
+<label>פרטי החשבונית</label>
+<textarea class="inp" id="em-details" rows="3" style="resize:vertical"></textarea>
+</div>
+<div class="modal-actions">
+<button class="btn-cancel" onclick="closeEditModal()">ביטול</button>
+<button class="btn-save" onclick="saveEdit()">שמור שינויים</button>
+</div>
+</div>
+</div>
+
+<!-- ===== ADD SECTION MODAL ===== -->
+<div id="section-modal" class="modal-overlay hidden">
+<div class="modal" style="max-width:420px">
+<h2>➕ <span id="section-modal-title">הוסף סעיף חדש</span></h2>
+<input type="hidden" id="sm-old-name">
+<div class="form-field">
+<label>שם הסעיף</label>
+<input class="inp" id="sm-name" placeholder="למשל: שיווק ופרסום">
+</div>
+<div class="modal-actions">
+<button class="btn-cancel" onclick="closeSectionModal()">ביטול</button>
+<button class="btn-save" onclick="saveSection()">שמור</button>
+</div>
+</div>
+</div>
+
+<!-- ===== ADD ACCOUNT MODAL ===== -->
+<div id="account-modal" class="modal-overlay hidden">
+<div class="modal" style="max-width:440px">
+<h2>➕ <span id="account-modal-title">הוסף חשבון</span></h2>
+<input type="hidden" id="am-section">
+<input type="hidden" id="am-old-name">
+<div class="form-field">
+<label>שם החשבון</label>
+<input class="inp" id="am-name" placeholder="למשל: דלק">
+</div>
+<div class="form-field" style="margin-top:14px">
+<label>% מע"מ לקיזוז</label>
+<select class="inp" id="am-vat">
+<option value="0">0% — ללא קיזוז</option>
+<option value="25">25% — קיזוז חלקי</option>
+<option value="66">66% — אחזקת רכב</option>
+<option value="100">100% — קיזוז מלא</option>
+</select>
+</div>
+<div class="form-field" style="margin-top:14px">
+<label>הערות</label>
+<input class="inp" id="am-notes" placeholder="אופציונלי">
+</div>
+<div class="modal-actions">
+<button class="btn-cancel" onclick="closeAccountModal()">ביטול</button>
+<button class="btn-save" onclick="saveAccount()">שמור</button>
+</div>
+</div>
+</div>
+
+<script>
+// ===== DATA =====
+const USERS = {
+'איל': { role:'client', password:'1234', accountant:'שירה' },
+'פלג': { role:'client', password:'1234', accountant:'ולנטינה' },
+'עמית': { role:'client', password:'1234', accountant:'אולגה' },
+'שירה': { role:'accountant', password:'1234', clients:['איל'] },
+'ולנטינה': { role:'accountant', password:'1234', clients:['פלג'] },
+'אולגה': { role:'accountant', password:'1234', clients:['עמית'] },
+'יערה': { role:'accountant', password:'1234', clients:[] },
+'מילה': { role:'accountant', password:'1234', clients:[] },
+};
+
+// Chart of accounts
+let PLAN = {
+'אחזקת רכב': [
+{name:'דלק', vat:66, notes:'רכב פרטי/עסקי'},
+{name:'חניה', vat:66, notes:''},
+{name:'ביטוח רכב', vat:0, notes:'פטור ממע"מ'},
+{name:'טיפולים ותיקונים', vat:66, notes:''},
+{name:'אחזקת רכב 25%', vat:25, notes:'מקרה פרטי'},
+],
+'תקשורת': [
+{name:'טלפון נייד', vat:66, notes:''},
+{name:'אינטרנט', vat:100, notes:''},
+{name:'טלפון בית', vat:0, notes:''},
+{name:'טלפון משרד', vat:100, notes:''},
+],
+'שכירות ואחזקת משרד': [
+{name:'שכירות משרד', vat:100, notes:''},
+{name:'ציוד משרדי', vat:100, notes:''},
+{name:'חשמל - משרד', vat:100, notes:''},
+{name:'חשמל - בית', vat:0, notes:''},
+{name:'ארנונה', vat:0, notes:'פטור ממע"מ'},
+],
+'שיווק ופרסום': [
+{name:'פרסום דיגיטלי', vat:100, notes:''},
+{name:'עיצוב גרפי', vat:100, notes:''},
+{name:'הפקות', vat:100, notes:''},
+],
+'מקצועיות': [
+{name:'יעוץ מקצועי', vat:100, notes:''},
+{name:'עוסק פטור', vat:0, notes:'אין מע"מ לקיזוז'},
+],
+'מיחשוב': [
+{name:'תוכנות ומנויים', vat:100, notes:''},
+{name:'חומרה', vat:100, notes:''},
+{name:'שירותי ענן', vat:100, notes:''},
+],
+'אירוח, כבודים, מתנות ותרומות': [
+{name:'אירוח עסקי', vat:0, notes:''},
+{name:'אירוח חו"ל', vat:100, notes:''},
+{name:'כבודים', vat:25, notes:''},
+{name:'מתנות', vat:0, notes:''},
+{name:'תרומות', vat:0, notes:''},
+],
+'טיסות לחו"ל': [
+{name:'טיסות לחו"ל', vat:0, notes:''},
+],
+'ביטוח': [
+{name:'ביטוח', vat:0, notes:''},
+],
+'עמלות כרטיס אשראי': [
+{name:'עמלות כרטיס אשראי', vat:100, notes:''},
+],
+'קבלני משנה': [
+{name:'קבלני משנה - עוסק פטור', vat:0, notes:''},
+{name:'קבלני משנה - עוסק מורשה', vat:100, notes:''},
+],
+'קניות וחומרים': [
+{name:'קניות וחומרים', vat:100, notes:''},
+],
+};
+
+// Invoice storage per client
+let INVOICES = {
+'איל': [
+{id:1, supplier:'תחנת דלק MAX', businessId:'557679420', businessType:'מורשה', date:'2024-10-13', amount:264.20, vat:44.91, total:309.11, currency:'ILS', details:'דלק 43.172 ליטר', status:'מאושר', section:'אחזקת רכב', account:'דלק', vatCalc:44.91, expense:264.20},
+{id:2, supplier:'גולן טלקום בע"מ', businessId:'558447686', businessType:'מורשה', date:'2024-09-15', amount:110.09, vat:18.71, total:128.80, currency:'ILS', details:'חשבון חודשי סלולר', status:'מאושר', section:'תקשורת', account:'טלפון נייד', vatCalc:12.35, expense:116.45},
+{id:3, supplier:'כרמל מוצרים טבעיים', businessId:'513714741', businessType:'מורשה', date:'2024-10-10', amount:30.69, vat:5.22, total:35.91, currency:'ILS', details:'לחם חיטה מלאה', status:'ממתין לאישור', section:'', account:'', vatCalc:0, expense:0},
+],
+'פלג': [
+{id:4, supplier:'רב מסר בע"מ', businessId:'514085091', businessType:'מורשה', date:'2024-08-27', amount:140.00, vat:23.80, total:163.80, currency:'ILS', details:'חבילת SMS-1', status:'מאושר', section:'מיחשוב', account:'תוכנות ומנויים', vatCalc:23.80, expense:140.00},
+{id:5, supplier:'FastBots.ai', businessId:'', businessType:'מורשה', date:'2024-10-13', amount:19.00, vat:0, total:19.00, currency:'USD', details:'מנוי Essential - שירות AI', status:'ממתין לאישור', section:'', account:'', vatCalc:0, expense:0},
+],
+'עמית': [
+{id:6, supplier:'ניר שטרן', businessId:'212768709', businessType:'פטור', date:'2024-11-14', amount:1500.00, vat:0, total:1500.00, currency:'ILS', details:'מיתוג פודקאסט', status:'מאושר', section:'מקצועיות', account:'עוסק פטור', vatCalc:0, expense:1500.00},
+{id:7, supplier:'ABC Live - ד"ר אינגליש', businessId:'308483809', businessType:'מורשה', date:'2024-08-21', amount:845.30, vat:143.70, total:989.00, currency:'ILS', details:'עריכת ספר שירה - מקדמה', status:'מאושר', section:'שיווק ופרסום', account:'הפקות', vatCalc:143.70, expense:845.30},
+{id:8, supplier:'סמדר מוניס', businessId:'058138462', businessType:'מורשה', date:'2024-10-22', amount:600.00, vat:102.00, total:702.00, currency:'ILS', details:'עיצוב עטיפת ספר', status:'מאושר', section:'שיווק ופרסום', account:'עיצוב גרפי', vatCalc:102.00, expense:600.00},
+{id:9, supplier:'אחזקות מפעלים יעד א.מ.י', businessId:'520039447', businessType:'מורשה', date:'2024-12-27', amount:741.10, vat:126.00, total:1025.10, currency:'ILS', details:'חיובי חודש 12/24 כולל ארנונה', status:'ממתין לאישור', section:'', account:'', vatCalc:0, expense:0},
+{id:10, supplier:'מאפייה וקונדיטוריה וליד חסן', businessId:'203586086', businessType:'מורשה', date:'2024-10-18', amount:127.40, vat:21.60, total:149.00, currency:'ILS', details:'מזון - 5 פריטים', status:'ממתין לאישור', section:'', account:'', vatCalc:0, expense:0},
+],
+};
+
+let nextId = 100;
+let currentUser = null;
+let currentClient = null;
+let accFilter = 'הכל';
+let vatPeriod = 'month';
+let plPeriod = 'month';
+let classifyInvId = null;
+let editInvId = null;
+let sectionModalMode = 'add';
+let accountModalMode = 'add';
+let apiKey = localStorage.getItem('yoda_api_key') || '';
+const charts = {};
+
+// ===== LOGIN =====
+function doLogin() {
+const email = document.getElementById('login-email').value.trim();
+const pass = document.getElementById('login-pass').value;
+const user = USERS[email];
+if (!user || user.password !== pass) {
+document.getElementById('login-err').classList.remove('hidden');
+return;
+}
+document.getElementById('login-err').classList.add('hidden');
+currentUser = email;
+document.getElementById('login-screen').classList.add('hidden');
+if (user.role === 'client') showClientApp();
+else showAccApp();
+}
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout() {
+currentUser = null; currentClient = null;
+document.getElementById('client-app').classList.add('hidden');
+document.getElementById('acc-app').classList.add('hidden');
+document.getElementById('login-screen').classList.remove('hidden');
+document.getElementById('login-email').value='';
+document.getElementById('login-pass').value='';
+}
+
+// ===== CLIENT APP =====
+function showClientApp() {
+document.getElementById('client-app').classList.remove('hidden');
+document.getElementById('client-username').textContent = currentUser;
+cSwitchTab('invoices');
+}
+
+function cSwitchTab(tab) {
+['invoices','upload'].forEach(t => {
+document.getElementById('ctab-'+t).classList.toggle('active', t===tab);
+document.getElementById('cpanel-'+t).classList.toggle('hidden', t!==tab);
+});
+if (tab==='invoices') renderClientInvoices();
+}
+
+function renderClientInvoices() {
+const invs = INVOICES[currentUser] || [];
+const el = document.getElementById('client-invoices-list');
+const stats = document.getElementById('client-stats');
+const total = invs.reduce((s,i)=>s+i.total,0);
+const approved = invs.filter(i=>i.status==='מאושר').length;
+const vatSum = invs.filter(i=>i.status==='מאושר').reduce((s,i)=>s+i.vatCalc,0);
+stats.innerHTML = `
+<div class="stat-card"><div class="s-icon">📄</div><div class="s-label">סה"כ חשבוניות</div><div class="s-val">${invs.length}</div></div>
+<div class="stat-card green"><div class="s-icon">✅</div><div class="s-label">מאושרות</div><div class="s-val">${approved}</div></div>
+<div class="stat-card"><div class="s-icon">₪</div><div class="s-label">סה"כ הוצאות</div><div class="s-val">₪${total.toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2})}</div></div>`;
+if (!invs.length) { el.innerHTML='<div class="empty-state"><div class="e-icon">📭</div><p>עדיין לא הועלו חשבוניות</p></div>'; return; }
+el.innerHTML = invs.map(inv=>`
+<div class="t-row" style="grid-template-columns:2fr 1fr 1.2fr 1.2fr 1fr 1fr">
+<div><div style="font-weight:600">${inv.supplier}</div><div style="color:var(--text3);font-size:12px;margin-top:2px">${inv.details}</div></div>
+<div style="color:var(--text2)">${inv.date}</div>
+<div style="color:var(--gold);font-weight:700">${inv.currency==='ILS'?'₪':'$'}${inv.total.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+<div style="color:var(--green)">${inv.vatCalc>0?'₪'+inv.vatCalc.toFixed(2):'—'}</div>
+<div style="color:var(--text2);font-size:12px">${inv.account||'—'}</div>
+<div><span class="badge ${inv.status==='מאושר'?'badge-approved':'badge-pending'}">${inv.status}</span></div>
+</div>`).join('');
+}
+
+// ===== UPLOAD / DRAG DROP =====
+let uploadQueue = []; // [{id, file, status:'waiting'|'processing'|'done'|'failed'|'manual', retries:0, data:null}]
+let uploadRunning = false;
+
+function dragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+function dragLeave(e) { document.getElementById('upload-zone').classList.remove('drag-over'); }
+function dropFile(e) {
+e.preventDefault();
+document.getElementById('upload-zone').classList.remove('drag-over');
+addFilesToQueue(Array.from(e.dataTransfer.files));
+}
+function handleMultiSelect(e) {
+addFilesToQueue(Array.from(e.target.files));
+e.target.value='';
+}
+
+function addFilesToQueue(files) {
+const valid = files.filter(f=>f.type.startsWith('image/')||f.type==='application/pdf');
+if (!valid.length) return;
+document.getElementById('done-banner').classList.add('hidden');
+valid.forEach(f=>{
+uploadQueue.push({id: Date.now()+Math.random(), file:f, status:'waiting', retries:0, data:null});
+});
+renderQueue();
+if (!uploadRunning) runQueue();
+}
+
+async function runQueue() {
+uploadRunning = true;
+while (true) {
+const item = uploadQueue.find(i=>i.status==='waiting');
+if (!item) break;
+item.status = 'processing';
+renderQueue();
+await processQueueItem(item);
+renderQueue();
+}
+uploadRunning = false;
+// Check if all done
+const allDone = uploadQueue.every(i=>i.status==='done'||i.status==='manual');
+if (allDone && uploadQueue.length>0) {
+document.getElementById('done-banner').classList.remove('hidden');
+}
+}
+
+async function processQueueItem(item) {
+const key = localStorage.getItem('yoda_api_key');
+if (!key) { item.status='manual'; item.note='אין API Key — נשמר לטיפול ידני'; saveQueueItem(item); return; }
+try {
+const base64 = await fileToBase64(item.file);
+item._base64 = base64; // store for classify modal
+const isPDF = item.file.type==='application/pdf';
+const content = isPDF
+? [{type:'document', source:{type:'base64', media_type:'application/pdf', data:base64}}]
+: [{type:'image', source:{type:'base64', media_type:item.file.type, data:base64}}];
+content.push({type:'text', text:`אתה מפענח חשבוניות ישראליות. חלץ את הנתונים הבאים מהחשבונית וענה אך ורק ב-JSON תקני ללא טקסט נוסף:
+{"supplier":"שם הספק","businessId":"מספר עוסק","businessType":"מורשה או פטור","date":"YYYY-MM-DD","amount":0,"vat":0,"total":0,"currency":"ILS","details":"תיאור"}
+המספרים יהיו מספרים בלבד. תאריך בפורמט YYYY-MM-DD. אם שדה לא קיים השתמש ב-null.`});
+const resp = await fetch('https://api.anthropic.com/v1/messages', {
+method:'POST',
+headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+body: JSON.stringify({model:'claude-opus-4-6', max_tokens:500, messages:[{role:'user',content}]})
+});
+if (!resp.ok) throw new Error(`שגיאת שרת ${resp.status}`);
+const data = await resp.json();
+const text = data.content[0].text.trim().replace(/```json|```/g,'').trim();
+const parsed = JSON.parse(text);
+if (!parsed.supplier && !parsed.total) throw new Error('לא ניתן לזהות חשבונית');
+item.data = parsed;
+item.status = 'done';
+saveQueueItem(item);
+} catch(err) {
+item.retries++;
+if (item.retries >= 3) {
+item.status = 'manual';
+item.note = 'נכשל 3 פעמים — נשמר לטיפול ידני';
+saveQueueItem(item);
+} else {
+item.status = 'waiting';
+item.note = `ניסיון ${item.retries}/3 נכשל — מנסה שוב...`;
+}
+}
+}
+
+function saveQueueItem(item) {
+if (!INVOICES[currentUser]) INVOICES[currentUser]=[];
+const inv = {
+id: ++nextId,
+supplier: item.data?.supplier || item.file.name,
+businessId: item.data?.businessId || '',
+businessType: item.data?.businessType || 'מורשה',
+date: item.data?.date || new Date().toISOString().split('T')[0],
+amount: item.data?.amount || 0,
+vat: item.data?.vat || 0,
+total: item.data?.total || 0,
+currency: item.data?.currency || 'ILS',
+details: item.data?.details || '',
+status: item.status==='manual' ? 'דרושה בדיקה ידנית' : 'ממתין לאישור',
+section:'', account:'', vatCalc:0, expense:0
+};
+INVOICES[currentUser].unshift(inv);
+// Store image for classify modal (images only, not PDFs)
+if (item._base64 && item.file && item.file.type.startsWith('image/')) {
+invoiceImages[inv.id] = `data:${item.file.type};base64,${item._base64}`;
+}
+}
+
+function renderQueue() {
+const el = document.getElementById('queue-area');
+if (!uploadQueue.length) { el.innerHTML=''; return; }
+const statusIcon = {waiting:'⏳', processing:'', done:'✅', failed:'❌', manual:'⚠️'};
+const statusText = {waiting:'ממתין...', processing:'מפענח...', done:'פוענח בהצלחה', failed:'נכשל', manual:'לטיפול ידני'};
+const statusColor = {waiting:'var(--text3)', processing:'var(--gold)', done:'var(--green)', failed:'var(--red)', manual:'var(--orange)'};
+el.innerHTML = `<div class="queue-list">` + uploadQueue.map(item=>`
+<div class="queue-item">
+<div class="qi-icon">${item.file.type==='application/pdf'?'📄':'🖼️'}</div>
+<div class="qi-info">
+<div class="qi-name">${item.file.name}</div>
+<div class="qi-sub" style="color:${statusColor[item.status]}">${item.note||statusText[item.status]}</div>
+${item.status==='done'&&item.data?`<div class="qi-sub" style="color:var(--text2);margin-top:2px">${item.data.supplier||''} ${item.data.total?'— ₪'+item.data.total:''}</div>`:''}
+</div>
+<div class="qi-status">
+${item.status==='processing'?'<div class="qi-spinner"></div>':''}
+${item.status==='waiting'&&item.retries>0?`<button class="qi-retry" onclick="retryItem('${item.id}')">נסה שוב</button>`:''}
+<span style="font-size:18px">${item.status!=='processing'?statusIcon[item.status]:''}</span>
+</div>
+</div>`).join('') + `</div>`;
+}
+
+function retryItem(id) {
+const item = uploadQueue.find(i=>i.id==id);
+if (item) { item.status='waiting'; item.note=''; renderQueue(); if(!uploadRunning) runQueue(); }
+}
+
+function resetUpload() {
+uploadQueue=[];
+document.getElementById('queue-area').innerHTML='';
+document.getElementById('done-banner').classList.add('hidden');
+}
+
+function fileToBase64(file) {
+return new Promise((res,rej) => {
+const r = new FileReader();
+r.onload = () => res(r.result.split(',')[1]);
+r.onerror = rej;
+r.readAsDataURL(file);
+});
+}
+
+// ===== ACCOUNTANT APP =====
+function showAccApp() {
+document.getElementById('acc-app').classList.remove('hidden');
+document.getElementById('acc-username').textContent = currentUser;
+document.getElementById('acc-username2').textContent = currentUser;
+renderClientSelectGrid();
+document.getElementById('acc-client-select').classList.remove('hidden');
+document.getElementById('acc-main').classList.add('hidden');
+}
+
+function renderClientSelectGrid() {
+const myClients = USERS[currentUser]?.clients || Object.keys(INVOICES);
+const all = myClients.length ? myClients : Object.keys(USERS).filter(u=>USERS[u].role==='client');
+const grid = document.getElementById('acc-clients-grid');
+const avatars = {'איל':'👨','פלג':'👦','עמית':'🧑'};
+grid.innerHTML = all.map(c=>`
+<div class="client-card" onclick="selectClient('${c}')">
+<div class="client-avatar">${avatars[c]||'👤'}</div>
+<h3>${c}</h3>
+<p>${(INVOICES[c]||[]).length} חשבוניות</p>
+<p style="margin-top:4px;color:var(--text3)">${(INVOICES[c]||[]).filter(i=>i.status==='ממתין לאישור').length} ממתינות לאישור</p>
+</div>`).join('');
+}
+
+function selectClient(name) {
+currentClient = name;
+resetPeriods();
+document.getElementById('acc-client-select').classList.add('hidden');
+document.getElementById('acc-main').classList.remove('hidden');
+document.getElementById('acc-current-client-badge').textContent = `לקוח: ${name}`;
+document.getElementById('acc-client-subtitle').textContent = `תיק לקוח: ${name}`;
+aSwitchTab('invoices');
+}
+
+function backToClientSelect() {
+currentClient = null;
+document.getElementById('acc-main').classList.add('hidden');
+document.getElementById('acc-client-select').classList.remove('hidden');
+renderClientSelectGrid();
+}
+
+function aSwitchTab(tab) {
+['invoices','vat','pl','ledger','plan','settings'].forEach(t => {
+document.getElementById('atab-'+t).classList.toggle('active', t===tab);
+document.getElementById('apanel-'+t).classList.toggle('hidden', t!==tab);
+});
+if (tab==='invoices') { renderAccStats(); renderAccInvoices(); }
+if (tab==='vat') renderVatReport();
+if (tab==='pl') renderPLReport();
+if (tab==='ledger') renderLedger();
+if (tab==='plan') renderPlan();
+if (tab==='settings') renderAccSettings();
+}
+
+function renderAccSettings() {
+const key = localStorage.getItem('yoda_api_key')||'';
+const st = document.getElementById('acc-ak-status-text');
+if (key) { st.textContent='מוגדר ✓'; st.className='ak-status ak-set'; }
+else { st.textContent='לא מוגדר'; st.className='ak-status ak-missing'; }
+}
+function accSaveApiKey() {
+const val = document.getElementById('acc-api-key-input').value.trim();
+if (!val) { alert('יש להכניס מפתח'); return; }
+localStorage.setItem('yoda_api_key', val);
+document.getElementById('acc-api-key-input').value='';
+renderAccSettings();
+alert('✅ מפתח API נשמר בהצלחה');
+}
+function accClearApiKey() {
+if (!confirm('למחוק את מפתח ה-API? פענוח חשבוניות לא יעבוד ללא מפתח.')) return;
+localStorage.removeItem('yoda_api_key');
+renderAccSettings();
+}
+
+function getClientInvoices() { return INVOICES[currentClient] || []; }
+
+function renderAccStats() {
+const invs = getClientInvoices();
+const total = invs.reduce((s,i)=>s+i.total,0);
+const vatSum = invs.filter(i=>i.status==='מאושר').reduce((s,i)=>s+i.vatCalc,0);
+document.getElementById('acc-stats').innerHTML = `
+<div class="stat-card"><div class="s-icon">📄</div><div class="s-label">סה"כ חשבוניות</div><div class="s-val">${invs.length}</div></div>
+<div class="stat-card orange"><div class="s-icon">⏳</div><div class="s-label">ממתינות לאישור</div><div class="s-val">${invs.filter(i=>i.status==='ממתין לאישור').length}</div></div>
+<div class="stat-card green"><div class="s-icon">✅</div><div class="s-label">מאושרות</div><div class="s-val">${invs.filter(i=>i.status==='מאושר').length}</div></div>
+<div class="stat-card blue"><div class="s-icon">💰</div><div class="s-label">מע"מ לקיזוז</div><div class="s-val">₪${vatSum.toFixed(0)}</div></div>`;
+}
+
+function aSetFilter(f) {
+accFilter = f;
+const map = {'הכל':'all','ממתין לאישור':'pending','מאושר':'approved'};
+['all','pending','approved'].forEach(k=>document.getElementById('af-'+k)?.classList.remove('active'));
+document.getElementById('af-'+map[f])?.classList.add('active');
+renderAccInvoices();
+}
+
+function renderAccInvoices() {
+const search = document.getElementById('acc-search')?.value?.toLowerCase()||'';
+const invs = getClientInvoices().filter(i=>(accFilter==='הכל'||i.status===accFilter)&&(!search||i.supplier.toLowerCase().includes(search)));
+const el = document.getElementById('acc-invoices-list');
+if (!invs.length) { el.innerHTML='<div class="empty-state"><div class="e-icon">🔍</div><p>לא נמצאו חשבוניות</p></div>'; return; }
+el.innerHTML = invs.map(inv=>`
+<div class="t-row" style="grid-template-columns:1.8fr 1fr 1fr 1fr 1fr 1.2fr 1.4fr">
+<div>
+<div style="font-weight:600">${inv.supplier}</div>
+<div style="color:var(--text3);font-size:11px;margin-top:2px">${inv.businessType==='פטור'?'<span style="color:var(--orange)">עוסק פטור</span>':inv.businessId||''}</div>
+</div>
+<div style="color:var(--text2)">${inv.date}</div>
+<div style="color:var(--gold);font-weight:700">${inv.currency==='ILS'?'₪':'$'}${inv.total.toLocaleString('he-IL',{minimumFractionDigits:2})}</div>
+<div style="color:var(--green)">${inv.status==='מאושר'&&inv.vatCalc>0?'₪'+inv.vatCalc.toFixed(2):'—'}</div>
+<div style="color:var(--gold)">${inv.status==='מאושר'&&inv.expense>0?'₪'+inv.expense.toFixed(2):'—'}</div>
+<div style="font-size:12px;color:var(--text2)">${inv.account||'<span style="color:var(--text3)">לא סווג</span>'}</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+${inv.status==='ממתין לאישור'?`<button class="btn-classify" onclick="openClassify(${inv.id})">סווג ואשר</button>`:''}
+${inv.status==='מאושר'?`<button class="btn-approve" onclick="openClassify(${inv.id})">עדכן סיווג</button>`:''}
+<button class="btn-sm" style="padding:4px 8px;font-size:11px" onclick="openEdit(${inv.id})">✏️</button>
+</div>
+</div>`).join('');
+}
+
+// ===== CLASSIFY =====
+// Store invoice images by invoice id (base64, set when uploaded)
+const invoiceImages = {};
+
+function openClassify(id) {
+classifyInvId = id;
+const inv = getClientInvoices().find(i=>i.id===id);
+
+// Populate summary panel
+document.getElementById('cm-supplier-disp').textContent = inv.supplier || '—';
+document.getElementById('cm-date-disp').textContent = inv.date || '—';
+document.getElementById('cm-total-disp').textContent = `${inv.currency==='ILS'?'₪':'$'}${inv.total.toFixed(2)}`;
+document.getElementById('cm-vat-disp').textContent = inv.vat>0 ? `₪${inv.vat.toFixed(2)}` : 'אין מע"מ';
+document.getElementById('cm-details-disp').textContent = inv.details || '—';
+
+// Show invoice image if available
+const imgWrap = document.getElementById('cm-image-wrap');
+if (invoiceImages[id]) {
+imgWrap.innerHTML = `<img src="${invoiceImages[id]}" style="width:100%;max-height:380px;object-fit:contain;padding:8px;border-radius:8px">`;
+} else {
+imgWrap.innerHTML = `<div style="text-align:center;color:var(--text3);font-size:13px;padding:32px">
+<div style="font-size:32px;margin-bottom:8px">🖼️</div>
+<div>תמונת המקור לא זמינה</div>
+<div style="font-size:11px;margin-top:4px">(הועלה לפני שמירת תמונות)</div>
+</div>`;
+}
+
+// Populate section selector
+const secSel = document.getElementById('cm-section');
+secSel.innerHTML = '<option value="">— בחר סעיף —</option>' + Object.keys(PLAN).map(s=>`<option value="${s}" ${inv.section===s?'selected':''}>${s}</option>`).join('');
+populateAccounts(inv.section, inv.account);
+calcClassifyVat();
+document.getElementById('classify-modal').classList.remove('hidden');
+}
+
+function onSectionChange() {
+populateAccounts(document.getElementById('cm-section').value, '');
+calcClassifyVat();
+}
+
+function populateAccounts(section, selectedAccount) {
+const accSel = document.getElementById('cm-account');
+accSel.innerHTML = '<option value="">— בחר חשבון —</option>';
+if (section && PLAN[section]) {
+PLAN[section].forEach(a=>{
+const opt = document.createElement('option');
+opt.value = a.name; opt.textContent = `${a.name} (${a.vat}% מע"מ)`;
+if (a.name===selectedAccount) opt.selected=true;
+accSel.appendChild(opt);
+});
+}
+calcClassifyVat();
+}
+
+function calcClassifyVat() {
+const inv = getClientInvoices().find(i=>i.id===classifyInvId);
+if (!inv) return;
+const section = document.getElementById('cm-section').value;
+const accountName = document.getElementById('cm-account').value;
+let vatCalc = 0, expense = 0, pct = 0;
+if (section && accountName && PLAN[section]) {
+const acc = PLAN[section].find(a=>a.name===accountName);
+if (acc) {
+pct = acc.vat;
+vatCalc = inv.vat * (pct/100);
+expense = inv.total - vatCalc;
+}
+}
+document.getElementById('cm-vat-pct').value = pct ? `${pct}%` : '—';
+document.getElementById('cm-vat-calc').value = `₪${vatCalc.toFixed(2)}`;
+document.getElementById('cm-expense').value = `₪${(expense||inv.total).toFixed(2)}`;
+}
+
+document.getElementById('cm-account').addEventListener('change', calcClassifyVat);
+
+function saveClassification() {
+const section = document.getElementById('cm-section').value;
+const accountName = document.getElementById('cm-account').value;
+if (!section||!accountName) { alert('יש לבחור סעיף וחשבון'); return; }
+const inv = getClientInvoices().find(i=>i.id===classifyInvId);
+const acc = PLAN[section]?.find(a=>a.name===accountName);
+inv.section = section;
+inv.account = accountName;
+inv.vatCalc = inv.vat * ((acc?.vat||0)/100);
+inv.expense = inv.total - inv.vatCalc;
+inv.status = 'מאושר';
+closeClassifyModal();
+renderAccStats(); renderAccInvoices();
+}
+
+function closeClassifyModal() { document.getElementById('classify-modal').classList.add('hidden'); }
+
+// ===== EDIT =====
+function openEdit(id) {
+editInvId = id;
+const inv = getClientInvoices().find(i=>i.id===id);
+document.getElementById('em-id').value=id;
+document.getElementById('em-supplier').value=inv.supplier;
+document.getElementById('em-business-id').value=inv.businessId||'';
+document.getElementById('em-business-type').value=inv.businessType||'מורשה';
+document.getElementById('em-date').value=inv.date;
+document.getElementById('em-amount').value=inv.amount;
+document.getElementById('em-vat').value=inv.vat;
+document.getElementById('em-total').value=inv.total;
+document.getElementById('em-currency').value=inv.currency||'ILS';
+document.getElementById('em-details').value=inv.details||'';
+document.getElementById('edit-modal').classList.remove('hidden');
+}
+
+function calcEditVat() {
+const amount = parseFloat(document.getElementById('em-amount').value)||0;
+const vat = amount * 0.17;
+document.getElementById('em-vat').value = vat.toFixed(2);
+document.getElementById('em-total').value = (amount+vat).toFixed(2);
+}
+
+function calcEditTotal() {
+const amount = parseFloat(document.getElementById('em-amount').value)||0;
+const vat = parseFloat(document.getElementById('em-vat').value)||0;
+document.getElementById('em-total').value = (amount+vat).toFixed(2);
+}
+
+function saveEdit() {
+const inv = getClientInvoices().find(i=>i.id===editInvId);
+inv.supplier = document.getElementById('em-supplier').value;
+inv.businessId = document.getElementById('em-business-id').value;
+inv.businessType = document.getElementById('em-business-type').value;
+inv.date = document.getElementById('em-date').value;
+inv.amount = parseFloat(document.getElementById('em-amount').value)||0;
+inv.vat = parseFloat(document.getElementById('em-vat').value)||0;
+inv.total = parseFloat(document.getElementById('em-total').value)||0;
+inv.currency = document.getElementById('em-currency').value;
+inv.details = document.getElementById('em-details').value;
+if (inv.status==='מאושר' && inv.account) {
+const acc = PLAN[inv.section]?.find(a=>a.name===inv.account);
+inv.vatCalc = inv.vat * ((acc?.vat||0)/100);
+inv.expense = inv.total - inv.vatCalc;
+}
+closeEditModal();
+renderAccStats(); renderAccInvoices();
+}
+
+function closeEditModal() { document.getElementById('edit-modal').classList.add('hidden'); }
+
+// ===== PERIOD SELECTOR — builds buttons from actual invoice dates =====
+// periods: 'month' = any single month, 'bimonth' = any 2-month pair, 'year' = any year
+// selectedPeriod stored per report as { type:'month'|'bimonth'|'year', value:'2024-10'|'2024-10/2024-11'|'2024' }
+
+// ===== PERIOD SELECTOR =====
+let vatSelectedPeriod = null;
+let plSelectedPeriod = null;
+let ledgerSelectedPeriod = null;
+
+function getApprovedInvoices() {
+return getClientInvoices().filter(i => i.status === 'מאושר');
+}
+function getAvailableMonths() {
+const months = new Set();
+getApprovedInvoices().forEach(i => { if (i.date) months.add(i.date.slice(0,7)); });
+return [...months].sort().reverse();
+}
+function getAvailableYears() {
+const years = new Set();
+getApprovedInvoices().forEach(i => { if (i.date) years.add(i.date.slice(0,4)); });
+return [...years].sort().reverse();
+}
+function hebrewMonth(ym) {
+const [y, m] = ym.split('-');
+const names = ['','ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+return `${names[parseInt(m)]} ${y}`;
+}
+
+function selectVatPeriod(type, value) {
+vatSelectedPeriod = {type, value};
+buildPeriodBar('vat-period-bar', vatSelectedPeriod, 'vat');
+_renderVatTable();
+}
+function selectPLPeriod(type, value) {
+plSelectedPeriod = {type, value};
+buildPeriodBar('pl-period-bar', plSelectedPeriod, 'pl');
+_renderPLTable();
+}
+function selectLedgerPeriod(type, value) {
+ledgerSelectedPeriod = {type, value};
+buildPeriodBar('ledger-period-bar', ledgerSelectedPeriod, 'ledger');
+_renderLedgerTable();
+}
+
+function buildPeriodBar(barId, sel, reportKey) {
+const months = getAvailableMonths();
+const years = getAvailableYears();
+const bar = document.getElementById(barId);
+if (!bar) return;
+if (!months.length) { bar.innerHTML='<span style="color:var(--text3);font-size:13px">אין חשבוניות מאושרות</span>'; return; }
+
+// Auto-select first month
+if (!sel) {
+if (reportKey==='vat') { vatSelectedPeriod = {type:'month',value:months[0]}; sel = vatSelectedPeriod; }
+if (reportKey==='pl') { plSelectedPeriod = {type:'month',value:months[0]}; sel = plSelectedPeriod; }
+if (reportKey==='ledger') { ledgerSelectedPeriod = {type:'month',value:months[0]}; sel = ledgerSelectedPeriod; }
+}
+sel = sel || {type:'month', value:months[0]};
+
+const fn = reportKey==='vat' ? 'selectVatPeriod' : reportKey==='pl' ? 'selectPLPeriod' : 'selectLedgerPeriod';
+const cls = (type, value) => `period-btn${sel.type===type && sel.value===value ? ' active' : ''}`;
+
+const bimonths = [];
+for (let i=0; i<months.length-1; i++) bimonths.push([months[i+1], months[i]]);
+
+bar.innerHTML = `
+<div style="display:flex;flex-direction:column;gap:8px;width:100%;margin-bottom:14px">
+<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<span style="color:var(--text3);font-size:12px;font-weight:600;min-width:52px">חודש:</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+${months.map(m=>`<button class="${cls('month',m)}" onclick="${fn}('month','${m}')">${hebrewMonth(m)}</button>`).join('')}
+</div>
+</div>
+${bimonths.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<span style="color:var(--text3);font-size:12px;font-weight:600;min-width:52px">חודשיים:</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+${bimonths.map(([m1,m2])=>{const v=m1+'|'+m2;return`<button class="${cls('bimonth',v)}" onclick="${fn}('bimonth','${v}')">${hebrewMonth(m1)} – ${hebrewMonth(m2)}</button>`;}).join('')}
+</div>
+</div>` : ''}
+${years.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+<span style="color:var(--text3);font-size:12px;font-weight:600;min-width:52px">שנה:</span>
+<div style="display:flex;gap:6px;flex-wrap:wrap">
+${years.map(y=>`<button class="${cls('year',y)}" onclick="${fn}('year','${y}')">${y}</button>`).join('')}
+</div>
+</div>` : ''}
+</div>`;
+}
+
+function filterBySelectedPeriod(invs, sel) {
+if (!sel) return invs;
+return invs.filter(i => {
+const ym = i.date?.slice(0,7), y = i.date?.slice(0,4);
+if (sel.type==='month') return ym === sel.value;
+if (sel.type==='bimonth') { const [m1,m2]=sel.value.split('|'); return ym===m1||ym===m2; }
+if (sel.type==='year') return y === sel.value;
+return true;
+});
+}
+
+function resetPeriods() {
+vatSelectedPeriod = plSelectedPeriod = ledgerSelectedPeriod = null;
+}
+
+// ===== VAT REPORT =====
+function renderVatReport() {
+buildPeriodBar('vat-period-bar', vatSelectedPeriod, 'vat');
+_renderVatTable();
+}
+function _renderVatTable() {
+const invs = filterBySelectedPeriod(getApprovedInvoices(), vatSelectedPeriod);
+const el = document.getElementById('vat-report-content');
+if (!invs.length) { el.innerHTML='<div class="empty-state" style="margin-top:8px"><div class="e-icon">📊</div><p>אין חשבוניות מאושרות בתקופה זו</p></div>'; return; }
+const totalVat=invs.reduce((s,i)=>s+i.vatCalc,0), totalAmount=invs.reduce((s,i)=>s+i.total,0);
+el.innerHTML=`<div class="table-card">
+<div class="table-head"><h3>דוח מע"מ תשומות</h3></div>
+<div class="t-row t-head-row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+<div>ספק</div><div>תאריך</div><div>סכום כולל</div><div>מע"מ בחשבונית</div><div>% קיזוז</div><div>מע"מ לקיזוז</div>
+</div>
+${invs.map(inv=>{const acc=PLAN[inv.section]?.find(a=>a.name===inv.account);return`<div class="t-row" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+<div><div style="font-weight:600">${inv.supplier}</div><div style="font-size:11px;color:var(--text3)">${inv.account||''}</div></div>
+<div style="color:var(--text2)">${inv.date}</div>
+<div>₪${inv.total.toFixed(2)}</div><div>₪${inv.vat.toFixed(2)}</div>
+<div style="color:var(--gold)">${acc?acc.vat+'%':'—'}</div>
+<div style="color:var(--green);font-weight:700">₪${inv.vatCalc.toFixed(2)}</div>
+</div>`;}).join('')}
+<div class="totals-row">
+<div class="tot"><div class="tot-label">מספר חשבוניות</div><div class="tot-val">${invs.length}</div></div>
+<div class="tot"><div class="tot-label">סה"כ הוצאות</div><div class="tot-val">₪${totalAmount.toFixed(2)}</div></div>
+<div class="tot"><div class="tot-label">סה"כ מע"מ לקיזוז</div><div class="tot-val">₪${totalVat.toFixed(2)}</div></div>
+</div>
+</div>`;
+}
+
+// ===== P&L REPORT — ריכוז עם accordion לפירוט =====
+function renderPLReport() {
+buildPeriodBar('pl-period-bar', plSelectedPeriod, 'pl');
+_renderPLTable();
+}
+function _renderPLTable() {
+const invs = filterBySelectedPeriod(getApprovedInvoices(), plSelectedPeriod);
+const el = document.getElementById('pl-report-content');
+if (!invs.length) { el.innerHTML='<div class="empty-state" style="margin-top:8px"><div class="e-icon">📈</div><p>אין חשבוניות מאושרות בתקופה זו</p></div>'; return; }
+const sections = {};
+invs.forEach(inv => { const s=inv.section||'לא מסווג'; if(!sections[s]) sections[s]=[]; sections[s].push(inv); });
+const grandTotal = invs.reduce((s,i)=>s+i.expense,0);
+const rows = Object.entries(sections).map(([sec,secInvs]) => {
+const secTotal=secInvs.reduce((s,i)=>s+i.expense,0), secVat=secInvs.reduce((s,i)=>s+i.vatCalc,0);
+const uid = 'pl_'+sec.replace(/[^\w]/g,'_')+'_'+Math.random().toString(36).slice(2,6);
+return `
+<div class="t-row" style="grid-template-columns:2fr 1fr 1fr 1fr;cursor:pointer;user-select:none"
+onclick="var d=document.getElementById('${uid}');d.classList.toggle('hidden');this.querySelector('.pl-arrow').textContent=d.classList.contains('hidden')?'▶':'▼'">
+<div style="font-weight:700;display:flex;align-items:center;gap:8px">
+<span class="pl-arrow" style="color:var(--text3);font-size:11px">▶</span> ${sec}
+</div>
+<div style="color:var(--text3);font-size:12px">${secInvs.length} חשבוניות</div>
+<div style="color:var(--green)">₪${secVat.toFixed(2)}</div>
+<div style="color:var(--gold);font-weight:700">₪${secTotal.toFixed(2)}</div>
+</div>
+<div id="${uid}" class="hidden">
+<div class="t-row t-head-row" style="grid-template-columns:2fr 1fr 1fr 1fr;background:var(--bg)">
+<div style="padding-right:24px">ספק / חשבון</div><div>תאריך</div><div>מע"מ שנתבע</div><div>הוצאה למס</div>
+</div>
+${secInvs.map(inv=>`<div class="t-row" style="grid-template-columns:2fr 1fr 1fr 1fr;background:var(--bg3)">
+<div style="padding-right:24px;font-size:12px"><span style="color:var(--text3)">↳</span> ${inv.supplier} <span style="color:var(--text3);font-size:11px">(${inv.account})</span></div>
+<div style="font-size:12px;color:var(--text2)">${inv.date}</div>
+<div style="font-size:12px;color:var(--green)">₪${inv.vatCalc.toFixed(2)}</div>
+<div style="font-size:12px;color:var(--gold);font-weight:600">₪${inv.expense.toFixed(2)}</div>
+</div>`).join('')}
+</div>`;
+}).join('');
+el.innerHTML=`<div class="table-card">
+<div class="table-head"><h3>דוח רווח והפסד — לחץ על סעיף לפירוט</h3></div>
+<div class="t-row t-head-row" style="grid-template-columns:2fr 1fr 1fr 1fr">
+<div>סעיף</div><div>חשבוניות</div><div>מע"מ שנתבע</div><div>הוצאה לצרכי מס</div>
+</div>
+${rows}
+<div class="totals-row">
+<div class="tot"><div class="tot-label">סה"כ הוצאות לצרכי מס</div><div class="tot-val" style="font-size:18px">₪${grandTotal.toFixed(2)}</div></div>
+</div>
+</div>`;
+}
+
+// ===== LEDGER =====
+function renderLedger() {
+buildPeriodBar('ledger-period-bar', ledgerSelectedPeriod, 'ledger');
+_renderLedgerTable();
+}
+function _renderLedgerTable() {
+const invs = filterBySelectedPeriod(getApprovedInvoices(), ledgerSelectedPeriod);
+const el = document.getElementById('ledger-content');
+if (!invs.length) { el.innerHTML='<div class="empty-state" style="margin-top:8px"><div class="e-icon">📋</div><p>אין חשבוניות מאושרות בתקופה זו</p></div>'; return; }
+const totalVat=invs.reduce((s,i)=>s+i.vatCalc,0), totalExpense=invs.reduce((s,i)=>s+i.expense,0), totalAmount=invs.reduce((s,i)=>s+i.total,0);
+el.innerHTML=`<div class="table-card">
+<div class="table-head"><h3>כרטסת מפורטת — ${currentClient}</h3></div>
+<div class="t-row t-head-row" style="grid-template-columns:1.5fr 0.9fr 0.8fr 1fr 0.8fr 0.7fr 1fr 1.1fr 1.2fr">
+<div>ספק</div><div>מ.עוסק</div><div>תאריך</div><div>סכום כולל</div><div>מע"מ</div><div>%</div><div>מע"מ לקיזוז</div><div>הוצאה למס</div><div>סעיף / חשבון</div>
+</div>
+${invs.map(inv=>{const acc=PLAN[inv.section]?.find(a=>a.name===inv.account);return`<div class="t-row" style="grid-template-columns:1.5fr 0.9fr 0.8fr 1fr 0.8fr 0.7fr 1fr 1.1fr 1.2fr">
+<div style="font-weight:600;font-size:12px">${inv.supplier}</div>
+<div style="color:var(--text3);font-size:11px">${inv.businessId||'—'}</div>
+<div style="color:var(--text2);font-size:12px">${inv.date}</div>
+<div style="font-size:12px">₪${inv.total.toFixed(2)}</div>
+<div style="font-size:12px">₪${inv.vat.toFixed(2)}</div>
+<div style="color:var(--gold);font-size:12px">${acc?acc.vat+'%':'—'}</div>
+<div style="color:var(--green);font-weight:600;font-size:12px">₪${inv.vatCalc.toFixed(2)}</div>
+<div style="color:var(--gold);font-weight:700;font-size:12px">₪${inv.expense.toFixed(2)}</div>
+<div style="font-size:11px"><div style="color:var(--text2)">${inv.section}</div><div style="color:var(--text3)">${inv.account}</div></div>
+</div>`;}).join('')}
+<div class="totals-row">
+<div class="tot"><div class="tot-label">חשבוניות</div><div class="tot-val">${invs.length}</div></div>
+<div class="tot"><div class="tot-label">סה"כ הוצאות</div><div class="tot-val">₪${totalAmount.toFixed(2)}</div></div>
+<div class="tot"><div class="tot-label">מע"מ לקיזוז</div><div class="tot-val">₪${totalVat.toFixed(2)}</div></div>
+<div class="tot"><div class="tot-label">הוצאות למס</div><div class="tot-val">₪${totalExpense.toFixed(2)}</div></div>
+</div>
+</div>`;
+}
+
+// ===== PLAN MANAGEMENT =====
+function renderPlan() {
+const el = document.getElementById('plan-content');
+el.innerHTML = Object.entries(PLAN).map(([sec,accounts])=>`
+<div class="plan-section">
+<div class="plan-section-header">
+<h4>📁 ${sec}</h4>
+<div style="display:flex;gap:8px">
+<button class="btn-sm" style="font-size:12px" onclick="openAddAccount('${sec}')">+ חשבון</button>
+<button class="btn-sm" style="font-size:12px" onclick="openEditSection('${sec}')">✏️ ערוך</button>
+</div>
+</div>
+<div class="plan-accounts">
+<div class="plan-account-row t-head-row" style="grid-template-columns:2fr 1fr 1.5fr auto;background:var(--bg3)">
+<div>שם חשבון</div><div>% מע"מ</div><div>הערות</div><div>פעולות</div>
+</div>
+${accounts.map(a=>`
+<div class="plan-account-row">
+<div style="font-weight:500">${a.name}</div>
+<div class="vat-pct vat-${a.vat===66?'66':a.vat===100?'100':a.vat===25?'25':'0'}">${a.vat}%</div>
+<div style="color:var(--text3);font-size:12px">${a.notes||'—'}</div>
+<div style="display:flex;gap:6px">
+<button class="btn-sm" style="font-size:11px;padding:3px 8px" onclick="openEditAccount('${sec}','${a.name}')">✏️</button>
+</div>
+</div>`).join('')}
+</div>
+</div>`).join('');
+}
+
+// Section modals
+function openAddSection() {
+sectionModalMode='add';
+document.getElementById('section-modal-title').textContent='הוסף סעיף חדש';
+document.getElementById('sm-name').value='';
+document.getElementById('sm-old-name').value='';
+document.getElementById('section-modal').classList.remove('hidden');
+}
+function openEditSection(name) {
+sectionModalMode='edit';
+document.getElementById('section-modal-title').textContent='ערוך סעיף';
+document.getElementById('sm-name').value=name;
+document.getElementById('sm-old-name').value=name;
+document.getElementById('section-modal').classList.remove('hidden');
+}
+function closeSectionModal() { document.getElementById('section-modal').classList.add('hidden'); }
+function saveSection() {
+const name = document.getElementById('sm-name').value.trim();
+if (!name) return;
+if (sectionModalMode==='add') {
+if (PLAN[name]) { alert('סעיף זה כבר קיים'); return; }
+PLAN[name] = [];
+} else {
+const old = document.getElementById('sm-old-name').value;
+if (old!==name) {
+PLAN[name] = PLAN[old];
+delete PLAN[old];
+}
+}
+closeSectionModal();
+renderPlan();
+}
+
+// Account modals
+function openAddAccount(section) {
+accountModalMode='add';
+document.getElementById('account-modal-title').textContent='הוסף חשבון';
+document.getElementById('am-section').value=section;
+document.getElementById('am-old-name').value='';
+document.getElementById('am-name').value='';
+document.getElementById('am-vat').value='100';
+document.getElementById('am-notes').value='';
+document.getElementById('account-modal').classList.remove('hidden');
+}
+function openEditAccount(section, name) {
+accountModalMode='edit';
+document.getElementById('account-modal-title').textContent='ערוך חשבון';
+const acc = PLAN[section]?.find(a=>a.name===name);
+document.getElementById('am-section').value=section;
+document.getElementById('am-old-name').value=name;
+document.getElementById('am-name').value=name;
+document.getElementById('am-vat').value=acc?.vat||100;
+document.getElementById('am-notes').value=acc?.notes||'';
+document.getElementById('account-modal').classList.remove('hidden');
+}
+function closeAccountModal() { document.getElementById('account-modal').classList.add('hidden'); }
+function saveAccount() {
+const section = document.getElementById('am-section').value;
+const name = document.getElementById('am-name').value.trim();
+const vat = parseInt(document.getElementById('am-vat').value);
+const notes = document.getElementById('am-notes').value.trim();
+if (!name) return;
+if (accountModalMode==='add') {
+PLAN[section].push({name,vat,notes});
+} else {
+const old = document.getElementById('am-old-name').value;
+const idx = PLAN[section].findIndex(a=>a.name===old);
+if (idx>=0) PLAN[section][idx] = {name,vat,notes};
+}
+closeAccountModal();
+renderPlan();
+}
+
+// ===== EXPORT STUBS =====
+function exportVatExcel() { alert('📊 יצוא Excel — יהיה זמין בגרסה הבאה עם חיבור API'); }
+function exportVatPDF() { alert('📄 יצוא PDF — יהיה זמין בגרסה הבאה עם חיבור API'); }
+function exportPLExcel() { alert('📊 יצוא Excel — יהיה זמין בגרסה הבאה עם חיבור API'); }
+function exportPLPDF() { alert('📄 יצוא PDF — יהיה זמין בגרסה הבאה עם חיבור API'); }
+function exportLedgerExcel() { alert('📊 יצוא Excel — יהיה זמין בגרסה הבאה עם חיבור API'); }
+function exportLedgerPDF() { alert('📄 יצוא PDF — יהיה זמין בגרסה הבאה עם חיבור API'); }
+
+// Close modals on overlay click
+document.getElementById('classify-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeClassifyModal(); });
+document.getElementById('edit-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeEditModal(); });
+document.getElementById('section-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeSectionModal(); });
+document.getElementById('account-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeAccountModal(); });
+</script>
+</body>
+</html>
